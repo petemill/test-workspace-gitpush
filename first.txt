@@ -1,6 +1,221 @@
-HI
-new mod
-has kjdha skj;dh as
-daskdklha sdahs
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Finesse</title>
 
- sdjhsd
+
+	<link rel="stylesheet" href="/_/style/ide.css" />
+
+{% include "./partial/globals.html" %}
+	<script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+
+
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.3.0/knockout-debug.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/knockout.mapping/2.4.1/knockout.mapping.min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
+
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/ace.js" type="text/javascript" charset="utf-8"></script>
+	<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+	<script src="/_/logic/build/ide.js"></script>
+
+</head>
+<body>
+<div id="Loading" data-bind="visible: projectSettingsVM.RetrievingData">
+	<h1>Loading...</h1>
+</div>
+<div id="UI" data-bind="visible: LoadingComplete">
+
+
+	<div id="Ends">
+
+		<div id="TitleBar">
+			<img class="logo-finesse" src="/_/style/media/finesse-logo.svg" alt="Finesse.IO" />
+		</div>
+
+		<div id="Backend">
+			<h2 class="end-label">Backend</h2>
+			<span class="backend-name">{{ backendSiteName }}</span>
+		</div>
+
+		<div id="Frontend">
+
+			<h2 class="end-label">Frontend</h2>
+
+			<ul class="nav nav-tabs">
+			  <li role="presentation" data-bind="css: {active: PageVM.ViewSettings.FrontendNav()=='assets'}"><a href="javascript:UIActions.ChangeFrontendDisplay('assets');">Style &amp; Scripts</a></li>
+			  <li role="presentation" data-bind="css: {active: PageVM.ViewSettings.FrontendNav()=='html'}"><a href="javascript:UIActions.ChangeFrontendDisplay('html');">HTML</a></li>
+			</ul>
+
+			<div id="AdjustmentList" data-bind="visible: PageVM.ViewSettings.FrontendNav()=='html'">
+				{% include "./partial/ide-adjustmentlist.html" %}
+			</div>
+
+			<div id="Assets" data-bind="visible: PageVM.ViewSettings.FrontendNav()=='assets'">
+				<div id="Workspaces" data-bind="foreach: AssetWorkspaceListVM.Workspaces">
+					<div class="workspace">
+						<!-- ko if: WorkspaceType === 'repo' -->
+						<button class="btn-clone" type="button" data-bind="click: BeginClone">Clone</button>
+						<!-- /ko -->
+						<div class="workspace-title">
+							<span data-bind="text: Name"></span>
+							<!-- ko if: WorkspaceType === 'repo' -->
+							<small data-bind="text: Status"></small>
+							<!-- /ko -->
+						</div>
+
+						<ul class="asset-list css-asset-list tree-view folder-and-files" data-bind="foreach: AssetListTree">
+							<!-- ko template: { name: 'asset-folder'} -->
+							<!-- /ko -->
+						</ul>
+					</div>
+				</div>
+			</div>
+
+
+		</div>
+
+	</div>
+
+
+	<div id="OpenAssets">
+
+		<ul class="assets-open-list nav nav-tabs" data-bind="foreach: Editor.CurrentAssetsOpen">
+		  <li role="presentation" data-bind="css: {'active': IsInView}">
+		  	<a class="file-name" href="#" data-bind="click: PageVM.Editor.SwitchToAsset"><span data-bind="text: FileName"></span><span class="close-button glyphicon glyphicon-remove" data-bind="click: PageVM.Editor.CloseAsset"></span></a>
+
+		  </li>
+		</ul>
+
+		<div id="AssetEditors" data-bind="foreach: Editor.CurrentAssetsOpen">
+			<!-- ko if: RepoConnection.IsMatch -->
+			<div class="editor-file-banner" data-bind="visible: IsInView">
+				 <p>
+					This asset is open in read-only mode as it is being served by a CodeRepo connection. Repo: <span data-bind="text: CodeRepoName(RepoConnection.Connection.RepoId)"></span> Path: <span data-bind="text: RepoConnection.AssetPath"></span>
+				</p>
+			</div>
+			<!-- /ko -->
+			<div class="editor-file-contents" data-bind="visible: IsInView, attr: { 'data-fileid': Id }">
+				Opening <span data-bind="text: FullPath"></span>...
+			</div>
+		</div>
+		<div class="pane pane-output" data-bind="activityclass: { 'pane-output-recentcontent': OutputConsoleVM.ConsoleLogItems }, css: { 'pane-showingmanually': OutputConsoleVM.ShouldDisplay}">
+			<div class="console-output">
+				<ul  data-bind="foreach: OutputConsoleVM.ConsoleLogItems">
+					<li>
+						<span class="name" data-bind="text: Name"></span>
+						<span class="status" data-bind="text: Status"></span>
+						<pre class="data" data-bind="html: Data">
+						</pre>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<div class="status-bar status-bar-openassets">
+			<div class="pane-handle" data-bind="event: { mouseover: OutputConsoleVM.ShouldDisplay, mouseout: function() { OutputConsoleVM.ShouldDisplay(false)}}">
+				Build Output
+			</div>
+		</div>
+	</div>
+
+	<div id="Workspace">
+		<div id="PagePreview" class="focus-in" data-bind="visible: ViewSettings.MainMenuOption()=='preview'">
+			<div class="preview-frame">
+				<!--<iframe src="{{ proxyPageUrl }}"></iframe>-->
+			</div>
+		</div>
+
+		<div id="RemoteInspect" class="focus=in" data-bind="visible: ViewSettings.MainMenuOption()=='remoteinspect'">
+			<h2>Remote Inspect</h2>
+			<ul class="browsers" data-bind="foreach: RemoteInspectVM.DeviceList.ConnectedDevices">
+				<li class="browser panel panel-default">
+					 <h3 class="panel-heading" data-bind="with: $root.RemoteInspectVM.UserAgentFromDevice($data)"><span data-bind="text: $parent.name"></span> - <span data-bind="text: browser.name"></span> / <span data-bind="text:os.name"></span> <button type="button" class="btn btn-default" data-bind="click: function(){ $root.RemoteInspectVM.ChangeDeviceName($parent)}">Change Name</button></h3>
+					<ul class="browser-tabs panel-body" data-bind="foreach: tabs">
+						<li class="browser-tab well well-sm">
+							<h4>ID: <span data-bind="text: id"></span></h4>
+							<p><span class="device-command">Refresh</span> <span class="device-command" data-bind="click: function(){ $root.RemoteInspectVM.Flash($parent,$data)}">Flash</span> <span class="device-command" data-bind="click: function(){ $root.RemoteInspectVM.InspectOn($parent,$data)}">Inspect</span></p>
+						</li>
+					</ul>
+				</li>
+			</ul>
+			<!-- ko if: RemoteInspectVM.CurrentInspectRoom()!=='' -->
+			<div class="remote-inspect">
+				<div class="remote-inspect-frame">
+					<iframe data-bind="attr: {src: 'http://inspect.finesse.io/client/#' + RemoteInspectVM.CurrentInspectRoom()}"></iframe>
+				</div>
+			</div>
+			<!-- /ko -->
+		</div>
+	</div>
+
+	<div id="FinesseCommands">
+
+		<div class="user-current">
+			<div class="user-avatar">
+				<img data-bind="attr: {src: CurrentUserVM.AvatarUrl}" />
+			</div>
+			<span class="user-name" data-bind="text: CurrentUserVM.UserName"></span>
+		</div>
+
+		<ul>
+			<li class="command">
+				<input type="radio" name="mainmenuoption" id="group-01-01" value="preview" data-bind="checked: ViewSettings.MainMenuOption" />
+	            <label for="group-01-01">Preview</label>
+				<div class="submenu">
+					<ul>
+						<li class="command">
+							<span class="command-title" data-bind="click: PagePreviewVM.Refresh">Refresh</span>
+						</li>
+						<li class="command">
+							<span class="command-title">Emulate</span>
+						</li>
+						<li class="command">
+							<span class="command-title">Inspect</span>
+						</li>
+					</ul>
+				</div>
+			</li>
+			<li class="command">
+				<input type="radio" name="mainmenuoption" id="group-01-03" value="remoteinspect" data-bind="checked: ViewSettings.MainMenuOption"  />
+	            <label for="group-01-03">Remote Inspect</label>
+				<div class="submenu">
+					<ul>
+						<li class="command">
+							<span class="command-title" data-bind="click: PagePreviewVM.Refresh">View Devices</span>
+						</li>
+						<li class="command">
+							<span class="command-title">Sync</span>
+						</li>
+						<li class="command">
+							<span class="command-title">Inspect</span>
+						</li>
+						<li class="command" data-bind="click: RemoteInspectVM.ReloadStylesForAll">
+							<span class="command-title">Test Dates</span>
+						</li>
+					</ul>
+				</div>
+			</li>
+			<li class="command">
+				<input type="radio" name="mainmenuoption" value="commit" id="group-01-02" data-bind="checked: ViewSettings.MainMenuOption"  />
+	            <label for="group-01-02">Commit</label>
+				<div class="submenu">
+					<ul>
+						<li class="command">
+							<span class="command-title">View Changes</span>
+						</li>
+						<li class="command">
+							<span class="command-title">Emulate</span>
+						</li>
+					</ul>
+				</div>
+			</li>
+
+
+		</ul>
+
+	</div>
+
+	{% include "./ko-templates/all.html" %}
+
+</div>
+</body>
+</html>
