@@ -189,7 +189,7 @@
 							<span class="command-title">Inspect</span>
 						</li>
 						<li class="command" data-bind="click: RemoteInspectVM.ReloadStylesForAll">
-							<span class="command-title">Test Dates</span>
+							<span class="command-ditle">Test Dates</span>
 						</li>
 					</ul>
 				</div>
