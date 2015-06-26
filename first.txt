@@ -216,7 +216,7 @@
 
 	{% include "./ko-templates/all.html" %}
 
-</div>asd
+</div>
 </body>
 </html>
 <!-- new change -->
