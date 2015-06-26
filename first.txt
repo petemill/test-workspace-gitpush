@@ -212,7 +212,7 @@
 
 		</ul>
 
-	</div>
+	</div>d
 
 	{% include "./ko-templates/all.html" %}
 
